@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EVC Manufacturing FPY Dashboard v1.3</title>
+    <title>EVC Manufacturing Dashboard v2.2</title>
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -19,37 +19,39 @@
     <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- External Data Source (JS File) -->
+    <!-- External Data Source (JS Files) -->
     <script src="evc_test_data.js"></script>
+    <script src="evc_npi_updates.js"></script>
 
     <style>
-        /* Typography & Base */
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f1f5f9; /* Slate-100 */
-        }
-        .font-brand {
-            font-family: 'Varela Round', sans-serif;
-        }
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+        .font-brand { font-family: 'Varela Round', sans-serif; }
         
         /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* Animation for alerts */
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .fade-in { animation: fadeIn 0.4s ease-out; }
+        /* Mac-style Card Container */
+        .card-container {
+            background-color: white;
+            border-radius: 1.5rem; /* rounded-3xl */
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); /* shadow-2xl */
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
     </style>
 </head>
-<body class="text-slate-800">
+<body class="text-slate-800 h-screen flex items-center justify-center p-4 md:p-8 bg-slate-100">
 
-    <!-- Login Screen Overlay -->
+    <!-- Login Screen -->
     <div id="login-screen" class="fixed inset-0 bg-slate-100 flex items-center justify-center z-50">
         <div class="bg-white p-8 rounded-2xl shadow-2xl w-96 border border-slate-200">
             <div class="text-center mb-8">
-                <!-- Removed blue container div -->
                 <img src="https://github.com/asendia2025/sales/blob/main/img/logo_company_transparency.png?raw=true" alt="Company Logo" class="w-16 h-16 object-contain mx-auto mb-4">
                 <h2 class="text-xl font-bold text-slate-800 font-brand">Security Access</h2>
                 <p class="text-xs text-slate-500 mt-2">Authorized Personnel Only</p>
@@ -57,258 +59,213 @@
             <form onsubmit="checkPassword(event)">
                 <div class="mb-4">
                     <label class="block text-xs font-semibold text-slate-600 mb-2 uppercase tracking-wide">Access Code</label>
-                    <input type="password" id="password-input" 
-                        class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-50 outline-none transition-all text-sm font-medium"
-                        placeholder="Enter password..." autofocus required>
+                    <input type="password" id="password-input" class="w-full px-4 py-3 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-4 focus:ring-blue-50 outline-none transition-all text-sm font-medium" placeholder="Enter password..." autofocus required>
                 </div>
-                <button type="submit" 
-                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow-md hover:shadow-lg transition-all text-sm flex justify-center items-center gap-2 group">
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow-md transition-all text-sm flex justify-center items-center gap-2 group">
                     <span>Unlock Dashboard</span>
                     <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
                 </button>
             </form>
-            <p class="text-center text-[10px] text-slate-400 mt-6">
-                Manufacturing Technology Center &copy; 2026
-            </p>
+            <p class="text-center text-[10px] text-slate-400 mt-6">Manufacturing Technology Center &copy; 2026</p>
         </div>
     </div>
 
-    <!-- Main Content (Hidden by Default) -->
-    <div id="app-content" class="flex h-screen overflow-hidden bg-slate-50 hidden">
+    <!-- Main App Container (Mac Style) -->
+    <div id="app-content" class="w-full h-full max-w-[1600px] card-container flex hidden">
         
-        <!-- Sidebar Navigation -->
-        <aside class="w-64 bg-slate-900 text-white flex flex-col shadow-2xl z-30 hidden md:flex shrink-0">
-            <!-- Brand -->
+        <!-- Sidebar -->
+        <aside class="w-64 bg-slate-900 text-white flex flex-col z-30 hidden md:flex shrink-0">
             <div class="h-16 flex items-center px-5 border-b border-slate-800">
                 <div class="flex items-center gap-3">
                     <div class="bg-blue-600 p-2 rounded-lg shadow-lg shadow-blue-900/50">
                         <i data-lucide="activity" class="w-5 h-5 text-white"></i>
                     </div>
-                    <div>
-                        <span class="font-brand text-lg font-bold tracking-wide block">EVC Analytics</span>
-                    </div>
+                    <span class="font-brand text-lg font-bold tracking-wide block">EVC CM</span>
                 </div>
             </div>
 
-            <!-- Menu -->
             <nav class="flex-1 py-6 px-3 space-y-1">
-                <!-- Dashboard Item -->
-                <a href="#" class="flex items-center gap-3 px-3 py-2.5 bg-blue-600 text-white rounded-lg shadow-md transition-all hover:bg-blue-500 group">
-                    <i data-lucide="layout-dashboard" class="w-5 h-5 group-hover:scale-110 transition-transform"></i>
+                <button onclick="switchView('fpy')" id="nav-fpy" class="w-full flex items-center gap-3 px-3 py-2.5 bg-blue-600 text-white rounded-lg shadow-md transition-all hover:bg-blue-500 group text-left">
+                    <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
                     <span class="font-medium text-sm">FPY Dashboard</span>
-                </a>
+                </button>
+                <button onclick="switchView('npi')" id="nav-npi" class="w-full flex items-center gap-3 px-3 py-2.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-all group text-left">
+                    <i data-lucide="rocket" class="w-5 h-5"></i>
+                    <span class="font-medium text-sm">NPI Updates</span>
+                </button>
             </nav>
 
-            <!-- Company Logo & Center Info (Bottom) -->
             <div class="p-5 border-t border-slate-800 bg-slate-950/30">
                 <div class="flex items-center gap-3">
-                    <div class="bg-white p-1 rounded-md shrink-0">
+                    <div class="bg-transparent p-1 rounded-md shrink-0">
                         <img src="https://github.com/asendia2025/sales/blob/main/img/logo_company_transparency.png?raw=true" alt="Company Logo" class="w-8 h-8 object-contain">
                     </div>
-                    <div>
-                        <p class="text-[11px] font-bold text-slate-300 tracking-wide leading-tight">Manufacturing<br>technology center</p>
-                    </div>
+                    <p class="text-[11px] font-bold text-slate-300 tracking-wide leading-tight">Manufacturing<br>Technology Center</p>
                 </div>
             </div>
         </aside>
 
-        <!-- Main Content Area -->
-        <div class="flex-1 flex flex-col h-full relative overflow-hidden">
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col h-full relative overflow-hidden bg-slate-50">
             
-            <!-- Top Header -->
+            <!-- Header -->
             <header class="h-16 bg-white border-b border-slate-200 shadow-sm flex items-center justify-between px-6 z-20 shrink-0">
                 <div class="flex items-center gap-4">
                     <button class="md:hidden text-slate-500 hover:text-slate-700">
                         <i data-lucide="menu" class="w-6 h-6"></i>
                     </button>
-                    <div>
-                        <h1 class="text-xl font-bold text-slate-800 font-brand">First Pass Yield (FPY) Overview</h1>
-                    </div>
+                    <h1 class="text-xl font-bold text-slate-800 font-brand" id="header-title">First Pass Yield (FPY) Overview</h1>
                 </div>
                 
-                <div class="flex items-center gap-3">
-                    <!-- Category Filter -->
+                <!-- FPY Filters (Only visible in FPY view) -->
+                <div id="fpy-controls" class="flex items-center gap-3">
                     <div class="flex items-center bg-slate-100 rounded-lg p-1 border border-slate-200">
-                        <button onclick="updateFilter('All')" id="btn-All" class="filter-btn px-4 py-1.5 rounded text-xs font-semibold transition-all">All</button>
-                        <button onclick="updateFilter('Quantum')" id="btn-Quantum" class="filter-btn px-4 py-1.5 rounded text-xs font-semibold transition-all">Quantum</button>
-                        <button onclick="updateFilter('Tykon')" id="btn-Tykon" class="filter-btn px-4 py-1.5 rounded text-xs font-semibold transition-all">Tykon</button>
+                        <button onclick="updateFpyFilter('All')" id="btn-All" class="filter-btn px-4 py-1.5 rounded text-xs font-semibold bg-white text-blue-700 shadow-sm transition-all">All</button>
+                        <button onclick="updateFpyFilter('Quantum')" id="btn-Quantum" class="filter-btn px-4 py-1.5 rounded text-xs font-semibold text-slate-600 transition-all">Quantum</button>
+                        <button onclick="updateFpyFilter('Tykon')" id="btn-Tykon" class="filter-btn px-4 py-1.5 rounded text-xs font-semibold text-slate-600 transition-all">Tykon</button>
+                    </div>
+                </div>
+
+                <!-- NPI Filters (Only visible in NPI view) -->
+                <div id="npi-controls" class="flex items-center gap-3 hidden">
+                    <div class="flex items-center bg-slate-100 rounded-lg p-1 border border-slate-200 gap-1">
+                        <button onclick="updateNpiFilter('All')" id="npi-btn-All" class="npi-filter-btn px-3 py-1.5 rounded text-xs font-semibold bg-white text-blue-700 shadow-sm transition-all">All</button>
+                        <button onclick="updateNpiFilter('Completed')" id="npi-btn-Completed" class="npi-filter-btn px-3 py-1.5 rounded text-xs font-semibold text-slate-600 transition-all">Completed</button>
+                        <button onclick="updateNpiFilter('In Progress')" id="npi-btn-InProgress" class="npi-filter-btn px-3 py-1.5 rounded text-xs font-semibold text-slate-600 transition-all">In Progress</button>
+                        <button onclick="updateNpiFilter('Hold')" id="npi-btn-Hold" class="npi-filter-btn px-3 py-1.5 rounded text-xs font-semibold text-slate-600 transition-all">Hold</button>
+                        <button onclick="updateNpiFilter('Waiting')" id="npi-btn-Waiting" class="npi-filter-btn px-3 py-1.5 rounded text-xs font-semibold text-slate-600 transition-all">Waiting</button>
                     </div>
                 </div>
             </header>
 
-            <!-- Scrollable Content -->
+            <!-- Scrollable Body -->
             <main class="flex-1 overflow-y-auto p-6">
-                <!-- Layout Limit: max-w-7xl (approx 1280px) to prevent layout from being too wide -->
-                <div class="max-w-7xl mx-auto space-y-6 pb-10">
+                <div class="max-w-7xl mx-auto pb-10">
 
-                    <!-- Logic Disclaimer -->
-                    <div class="flex justify-end">
-                         <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-slate-200 text-[11px] font-medium text-slate-500 shadow-sm">
-                            <i data-lucide="calendar-clock" class="w-3 h-3"></i>
-                            <span>Based on Rolling 12 Months Data (from today)</span>
-                        </div>
-                    </div>
-                    
-                    <!-- KPI Cards -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <!-- FPY -->
-                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex flex-col justify-between hover:shadow-md transition-shadow">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total FPY</p>
-                                    <h3 class="text-3xl font-extrabold text-slate-800 mt-1" id="kpi-fpy">--%</h3>
-                                </div>
-                                <div class="p-2.5 bg-blue-50 rounded-lg text-blue-600">
-                                    <i data-lucide="activity" class="w-5 h-5"></i>
-                                </div>
-                            </div>
-                            <div class="mt-3 pt-3 border-t border-slate-50 flex items-center justify-between">
-                                <span class="text-xs font-medium text-slate-500">Target: <span class="text-slate-800">95.0%</span></span>
-                                <span id="target-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-700">On Track</span>
+                    <!-- VIEW 1: FPY Dashboard -->
+                    <div id="view-fpy" class="fade-in space-y-6">
+                        <!-- Logic Disclaimer -->
+                        <div class="flex justify-end">
+                             <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-slate-200 text-[11px] font-medium text-slate-500 shadow-sm">
+                                <i data-lucide="calendar-clock" class="w-3 h-3"></i>
+                                <span>Based on Rolling 12 Months Data</span>
                             </div>
                         </div>
-
-                        <!-- Output -->
-                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex flex-col justify-between hover:shadow-md transition-shadow">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Output</p>
-                                    <h3 class="text-3xl font-extrabold text-slate-800 mt-1" id="kpi-total">--</h3>
+                        
+                        <!-- KPI Cards -->
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <!-- KPI 1 -->
+                            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex flex-col justify-between">
+                                <div class="flex justify-between items-start">
+                                    <div><p class="text-xs font-semibold text-slate-500 uppercase">Total FPY</p><h3 class="text-3xl font-extrabold text-slate-800 mt-1" id="kpi-fpy">--%</h3></div>
+                                    <div class="p-2.5 bg-blue-50 rounded-lg text-blue-600"><i data-lucide="activity" class="w-5 h-5"></i></div>
                                 </div>
-                                <div class="p-2.5 bg-slate-50 rounded-lg text-slate-600">
-                                    <i data-lucide="box" class="w-5 h-5"></i>
-                                </div>
+                                <div class="mt-3 pt-3 border-t border-slate-50 flex justify-between"><span class="text-xs text-slate-500">Target: 95.0%</span><span id="target-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-700">On Track</span></div>
                             </div>
-                            <div class="mt-3 pt-3 border-t border-slate-50">
-                                <span class="text-[10px] text-slate-400">Total units processed in L12M</span>
-                            </div>
-                        </div>
-
-                        <!-- Passed -->
-                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex flex-col justify-between hover:shadow-md transition-shadow">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Passed Units</p>
-                                    <h3 class="text-3xl font-extrabold text-emerald-600 mt-1" id="kpi-pass">--</h3>
+                            <!-- KPI 2 -->
+                            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex flex-col justify-between">
+                                <div class="flex justify-between items-start">
+                                    <div><p class="text-xs font-semibold text-slate-500 uppercase">Total Output</p><h3 class="text-3xl font-extrabold text-slate-800 mt-1" id="kpi-total">--</h3></div>
+                                    <div class="p-2.5 bg-slate-50 rounded-lg text-slate-600"><i data-lucide="box" class="w-5 h-5"></i></div>
                                 </div>
-                                <div class="p-2.5 bg-emerald-50 rounded-lg text-emerald-600">
-                                    <i data-lucide="check-circle-2" class="w-5 h-5"></i>
-                                </div>
+                                <div class="mt-3 pt-3 border-t border-slate-50"><span class="text-[10px] text-slate-400">Total units processed</span></div>
                             </div>
-                            <div class="mt-3 pt-3 border-t border-slate-50">
-                                <span class="text-[10px] text-slate-400">First pass success</span>
+                            <!-- KPI 3 -->
+                            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex flex-col justify-between">
+                                <div class="flex justify-between items-start">
+                                    <div><p class="text-xs font-semibold text-slate-500 uppercase">Passed</p><h3 class="text-3xl font-extrabold text-emerald-600 mt-1" id="kpi-pass">--</h3></div>
+                                    <div class="p-2.5 bg-emerald-50 rounded-lg text-emerald-600"><i data-lucide="check-circle-2" class="w-5 h-5"></i></div>
+                                </div>
+                                <div class="mt-3 pt-3 border-t border-slate-50"><span class="text-[10px] text-slate-400">First pass success</span></div>
+                            </div>
+                            <!-- KPI 4 -->
+                            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex flex-col justify-between">
+                                <div class="flex justify-between items-start">
+                                    <div><p class="text-xs font-semibold text-slate-500 uppercase">Failed</p><h3 class="text-3xl font-extrabold text-rose-600 mt-1" id="kpi-fail">--</h3></div>
+                                    <div class="p-2.5 bg-rose-50 rounded-lg text-rose-600"><i data-lucide="alert-triangle" class="w-5 h-5"></i></div>
+                                </div>
+                                <div class="mt-3 pt-3 border-t border-slate-50"><span class="text-[10px] text-slate-400">Requires rework</span></div>
                             </div>
                         </div>
 
-                        <!-- Failed -->
-                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex flex-col justify-between hover:shadow-md transition-shadow">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Failed Units</p>
-                                    <h3 class="text-3xl font-extrabold text-rose-600 mt-1" id="kpi-fail">--</h3>
+                        <!-- Charts -->
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col h-[400px]">
+                                <div class="flex justify-between mb-4">
+                                    <h2 class="text-lg font-bold text-slate-800">Monthly FPY Trend</h2>
+                                    <div class="flex gap-3"><span class="flex items-center text-xs gap-1"><span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span> FPY %</span><span class="flex items-center text-xs gap-1"><span class="w-2.5 h-2.5 rounded bg-blue-300"></span> Vol</span></div>
                                 </div>
-                                <div class="p-2.5 bg-rose-50 rounded-lg text-rose-600">
-                                    <i data-lucide="alert-triangle" class="w-5 h-5"></i>
-                                </div>
+                                <div class="flex-1 relative w-full"><canvas id="fpyTrendChart"></canvas></div>
                             </div>
-                            <div class="mt-3 pt-3 border-t border-slate-50">
-                                <span class="text-[10px] text-slate-400">Requires rework/analysis</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Charts Section -->
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <!-- Trend Chart -->
-                        <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col h-[400px]">
-                            <div class="flex items-center justify-between mb-6">
-                                <div>
-                                    <h2 class="text-lg font-bold text-slate-800 font-brand">Monthly FPY Trend</h2>
-                                    <p class="text-xs text-slate-500">Yield (%) vs Production Volume (Units)</p>
-                                </div>
-                                <!-- Legend Custom -->
-                                <div class="flex gap-3">
-                                    <div class="flex items-center gap-1.5">
-                                        <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
-                                        <span class="text-xs font-semibold text-slate-600">FPY %</span>
-                                    </div>
-                                    <div class="flex items-center gap-1.5">
-                                        <span class="w-2.5 h-2.5 rounded bg-slate-300"></span>
-                                        <span class="text-xs font-semibold text-slate-600">Volume</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="flex-1 relative w-full min-h-0">
-                                <canvas id="fpyTrendChart"></canvas>
+                            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col h-[400px]">
+                                <h2 class="text-lg font-bold text-slate-800 mb-4">Failure Pareto</h2>
+                                <div class="flex-1 relative w-full"><canvas id="paretoChart"></canvas></div>
                             </div>
                         </div>
 
-                        <!-- Pareto Chart -->
-                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col h-[400px]">
-                            <div class="mb-6">
-                                <h2 class="text-lg font-bold text-slate-800 font-brand">Failure Pareto</h2>
-                                <p class="text-xs text-slate-500">Top 5 Defect Reasons</p>
+                        <!-- Table -->
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                            <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50/50">
+                                <h3 class="text-base font-bold text-slate-800 flex items-center gap-2"><i data-lucide="clipboard-list" class="w-4 h-4 text-rose-500"></i> Recent Failure Logs</h3>
+                                <button onclick="downloadCSV()" class="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-600 text-xs font-bold rounded shadow-sm"><i data-lucide="download" class="w-3.5 h-3.5"></i> Download All</button>
                             </div>
-                            <div class="flex-1 relative w-full min-h-0">
-                                <canvas id="paretoChart"></canvas>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-xs text-left">
+                                    <thead class="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
+                                        <tr><th class="px-6 py-3">Status</th><th class="px-6 py-3">Date</th><th class="px-6 py-3">Category</th><th class="px-6 py-3">Model</th><th class="px-6 py-3">Error</th></tr>
+                                    </thead>
+                                    <tbody id="table-body" class="divide-y divide-slate-100"></tbody>
+                                </table>
+                                <div id="empty-state" class="hidden py-8 text-center"><p class="text-slate-400 text-xs">No Recent Failures</p></div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Failure Logs Table -->
-                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                        <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/50">
-                            <div>
-                                <h3 class="text-base font-bold text-slate-800 font-brand flex items-center gap-2">
-                                    <i data-lucide="clipboard-list" class="w-4 h-4 text-rose-500"></i>
-                                    Recent Failure Logs
-                                </h3>
+                    <!-- VIEW 2: NPI Updates -->
+                    <div id="view-npi" class="fade-in space-y-6 hidden">
+                        <!-- NPI Stats -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                                <p class="text-xs font-semibold text-slate-500 uppercase">Active NPI Projects</p>
+                                <h3 class="text-3xl font-extrabold text-slate-800 mt-1" id="npi-active-count">0</h3>
                             </div>
-                            <button onclick="downloadCSV()" class="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-50 hover:border-blue-300 hover:text-blue-600 text-slate-600 text-xs font-bold rounded-md transition-all shadow-sm">
-                                <i data-lucide="download" class="w-3.5 h-3.5"></i>
-                                Download All Logs
-                            </button>
+                            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                                <p class="text-xs font-semibold text-slate-500 uppercase">Completed Projects</p>
+                                <h3 class="text-3xl font-extrabold text-emerald-600 mt-1" id="npi-completed-count">0</h3>
+                            </div>
+                            <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
+                                <p class="text-xs font-semibold text-slate-500 uppercase">Total Target Units</p>
+                                <h3 class="text-3xl font-extrabold text-blue-600 mt-1" id="npi-total-units">0</h3>
+                            </div>
                         </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-xs text-left">
-                                <thead class="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
-                                    <tr>
-                                        <th class="px-6 py-3 font-bold">Status</th>
-                                        <th class="px-6 py-3 font-bold">Date</th>
-                                        <th class="px-6 py-3 font-bold">Category</th>
-                                        <th class="px-6 py-3 font-bold">Model</th>
-                                        <th class="px-6 py-3 font-bold">Primary Error</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="table-body" class="divide-y divide-slate-100">
-                                    <!-- Populated by JS -->
-                                </tbody>
-                            </table>
-                            <div id="empty-state" class="hidden py-10 text-center">
-                                <div class="inline-flex p-3 bg-green-50 rounded-full mb-2">
-                                    <i data-lucide="check-circle" class="w-6 h-6 text-green-500"></i>
-                                </div>
-                                <h4 class="text-slate-800 font-bold">No Recent Failures</h4>
-                                <p class="text-slate-400 text-xs">Great job! Production is running smoothly.</p>
+
+                        <!-- NPI Table -->
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                            <div class="px-6 py-5 border-b border-slate-200 bg-slate-50/50 flex justify-between items-center">
+                                <h3 class="text-base font-bold text-slate-800 flex items-center gap-2"><i data-lucide="rocket" class="w-4 h-4 text-blue-500"></i> Project Status Details</h3>
+                                <!-- Current Filter Display (Optional) -->
+                                <span id="npi-current-filter" class="text-xs font-medium text-slate-500 bg-white px-2 py-1 rounded border border-slate-200">Filter: All</span>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-xs text-left">
+                                    <thead class="bg-slate-50 text-slate-500 uppercase font-bold border-b border-slate-200">
+                                        <tr>
+                                            <th class="px-6 py-4 w-1/4">Model Info</th>
+                                            <th class="px-6 py-4">Timeline / Target</th>
+                                            <th class="px-6 py-4 w-1/6">Progress</th>
+                                            <th class="px-6 py-4">Status</th>
+                                            <th class="px-6 py-4 w-1/4">Note</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="npi-table-body" class="divide-y divide-slate-100">
+                                        <!-- JS Populated -->
+                                    </tbody>
+                                </table>
+                                <div id="npi-empty-state" class="hidden py-8 text-center text-slate-400 text-xs">No projects match this status.</div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Methodology Footer -->
-                    <footer class="bg-white rounded-xl p-5 border border-slate-200 text-center md:text-left md:flex justify-between items-center gap-4 shadow-sm">
-                        <div>
-                            <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wide">Calculation Methodology</h4>
-                            <p class="text-[11px] text-slate-500 mt-1 leading-relaxed">
-                                <strong>FPY (First Pass Yield) Index = (Passed Units / Total Units Processed) × 100</strong><br>
-                                * Passed Units: Units with 0 failures recorded in the first test cycle.<br>
-                                * Analysis Period: Rolling 12 months from current date.
-                            </p>
-                        </div>
-                        <div class="mt-4 md:mt-0 text-right">
-                             <p class="text-[10px] text-slate-400 font-medium">EVC Dashboard v1.3 (Revised)</p>
-                             <p class="text-[10px] text-slate-400">Powered by Manufacturing technology center</p>
-                        </div>
-                    </footer>
                 </div>
             </main>
         </div>
@@ -316,57 +273,81 @@
 
     <!-- Logic Script -->
     <script>
-        // Initialize Icons
         lucide.createIcons();
 
-        // --- Password Protection Logic ---
+        // 1. Data Check
+        let fullData = [];
+        let npiData = [];
+
+        // Safety check for FPY data
+        if (typeof evcTestData !== 'undefined') fullData = evcTestData;
+        else console.warn("FPY Data (evc_test_data.js) missing.");
+
+        // Safety check for NPI data
+        if (typeof evcNpiData !== 'undefined') {
+            npiData = evcNpiData;
+        } else if (typeof evcTestData !== 'undefined' && evcTestData[0] && evcTestData[0].npi_start) {
+            console.warn("Variable conflict detected. Using available data for NPI.");
+            npiData = evcTestData; 
+        } else {
+            npiData = [];
+        }
+
+        // --- Auth ---
         function checkPassword(e) {
             e.preventDefault();
             const input = document.getElementById('password-input');
-            const entered = input.value;
-            
-            if (entered === 'evc2580') {
-                // Correct Password
+            if (input.value === 'evc2580') {
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('app-content').classList.remove('hidden');
-                
-                // Initialize Charts only after dashboard is visible
-                initCharts();
-                renderDashboard('All');
-                
-                // Trigger resize event to ensure charts fit container correctly
-                window.dispatchEvent(new Event('resize'));
+                initApp();
             } else {
-                // Incorrect
-                alert('Access Denied: Incorrect Password');
+                alert('Incorrect Password');
                 input.value = '';
-                input.focus();
             }
         }
 
-        // Data Check
-        let fullData = [];
-        if (typeof evcTestData !== 'undefined') {
-            fullData = evcTestData;
-        } else {
-            console.error("Data file (evc_test_data.js) not found.");
-            // Only alert if pass check passed, otherwise it might look weird behind login
-            // But since we load data globally, we might want to warn gracefully or handle in render.
+        // --- Navigation ---
+        function switchView(viewId) {
+            const fpyBtn = document.getElementById('nav-fpy');
+            const npiBtn = document.getElementById('nav-npi');
+            
+            const activeClass = "bg-blue-600 text-white shadow-md";
+            const inactiveClass = "text-slate-400 hover:text-white hover:bg-slate-800";
+
+            if(viewId === 'fpy') {
+                fpyBtn.className = `w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group text-left ${activeClass}`;
+                npiBtn.className = `w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group text-left ${inactiveClass}`;
+                
+                document.getElementById('view-fpy').classList.remove('hidden');
+                document.getElementById('view-npi').classList.add('hidden');
+                
+                document.getElementById('header-title').innerText = "First Pass Yield (FPY) Overview";
+                document.getElementById('fpy-controls').classList.remove('hidden');
+                document.getElementById('npi-controls').classList.add('hidden');
+            } else {
+                npiBtn.className = `w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group text-left ${activeClass}`;
+                fpyBtn.className = `w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all group text-left ${inactiveClass}`;
+                
+                document.getElementById('view-npi').classList.remove('hidden');
+                document.getElementById('view-fpy').classList.add('hidden');
+                
+                document.getElementById('header-title').innerText = "New Product Introduction (NPI) Updates";
+                document.getElementById('fpy-controls').classList.add('hidden');
+                document.getElementById('npi-controls').classList.remove('hidden');
+            }
         }
 
-        // --- Configuration ---
+        // --- FPY Logic ---
         const FPY_TARGET = 95.0;
         let trendChartInst = null;
         let paretoChartInst = null;
-
-        // --- Core Logic ---
 
         function getRolling12MonthsData() {
             const today = new Date();
             const oneYearAgo = new Date(today);
             oneYearAgo.setFullYear(today.getFullYear() - 1);
             oneYearAgo.setDate(1);
-
             return fullData.filter(d => {
                 const parts = d.test_date.split('/');
                 if(parts.length < 2) return false;
@@ -375,33 +356,20 @@
             });
         }
 
-        function processData(categoryFilter) {
+        function processFpyData(categoryFilter) {
             const timeFiltered = getRolling12MonthsData();
-
-            const data = categoryFilter === "All" 
-                ? timeFiltered 
-                : timeFiltered.filter(d => d.category === categoryFilter);
-
+            const data = categoryFilter === "All" ? timeFiltered : timeFiltered.filter(d => d.category === categoryFilter);
             const total = data.length;
             const failCount = data.filter(d => parseInt(d.failures) > 0).length;
             const passCount = total - failCount;
             const fpy = total > 0 ? ((passCount / total) * 100).toFixed(1) : 0.0;
 
             const monthlyStats = {};
-            data.sort((a, b) => {
-                 const dA = new Date(a.test_date);
-                 const dB = new Date(b.test_date);
-                 return dA - dB;
-            });
-
+            data.sort((a, b) => new Date(a.test_date) - new Date(b.test_date));
             data.forEach(d => {
                 const parts = d.test_date.split('/');
-                if (parts.length < 2) return;
-                
-                const yearShort = parts[0].slice(2);
-                const monthPadded = parts[1].padStart(2, '0');
-                const key = `${yearShort}-${monthPadded}`;
-                
+                if(parts.length < 2) return;
+                const key = `${parts[0].slice(2)}-${parts[1].padStart(2,'0')}`;
                 if (!monthlyStats[key]) monthlyStats[key] = { total: 0, pass: 0 };
                 monthlyStats[key].total++;
                 if (parseInt(d.failures) === 0) monthlyStats[key].pass++;
@@ -414,17 +382,10 @@
             const errorCounts = {};
             data.forEach(d => {
                 if (parseInt(d.failures) > 0) {
-                    [d.error_step_1, d.error_step_2, d.error_step_3].forEach(err => {
-                        if (err && err.trim() !== "") {
-                            errorCounts[err] = (errorCounts[err] || 0) + 1;
-                        }
-                    });
+                    [d.error_step_1, d.error_step_2, d.error_step_3].forEach(e => { if(e && e.trim()) errorCounts[e] = (errorCounts[e]||0)+1; });
                 }
             });
-
-            const paretoSorted = Object.entries(errorCounts)
-                .sort((a, b) => b[1] - a[1])
-                .slice(0, 5);
+            const paretoSorted = Object.entries(errorCounts).sort((a, b) => b[1] - a[1]).slice(0, 5);
 
             return {
                 kpi: { total, passCount, failCount, fpy },
@@ -434,176 +395,217 @@
             };
         }
 
-        // --- Rendering ---
-
-        function renderDashboard(category) {
-            document.querySelectorAll('.filter-btn').forEach(btn => {
-                btn.className = "filter-btn px-4 py-1.5 rounded text-xs font-semibold text-slate-600 hover:bg-slate-200 transition-all";
-            });
+        function renderFpyDashboard(category) {
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.className = "filter-btn px-4 py-1.5 rounded text-xs font-semibold text-slate-600 hover:bg-slate-200 transition-all");
             document.getElementById(`btn-${category}`).className = "filter-btn px-4 py-1.5 rounded text-xs font-semibold bg-white text-blue-700 shadow-sm ring-1 ring-slate-200 transition-all";
 
-            const data = processData(category);
-
+            const data = processFpyData(category);
             document.getElementById('kpi-fpy').innerText = `${data.kpi.fpy}%`;
             document.getElementById('kpi-total').innerText = data.kpi.total.toLocaleString();
             document.getElementById('kpi-pass').innerText = data.kpi.passCount.toLocaleString();
             document.getElementById('kpi-fail').innerText = data.kpi.failCount.toLocaleString();
 
             const badge = document.getElementById('target-badge');
+            const fpyText = document.getElementById('kpi-fpy');
             if (parseFloat(data.kpi.fpy) >= FPY_TARGET) {
-                badge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-700";
-                badge.innerText = "On Track";
-                document.getElementById('kpi-fpy').className = "text-3xl font-extrabold text-emerald-600 mt-1";
+                badge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-700"; badge.innerText = "On Track"; fpyText.className = "text-3xl font-extrabold text-emerald-600 mt-1";
             } else {
-                badge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-700";
-                badge.innerText = "Below Target";
-                document.getElementById('kpi-fpy').className = "text-3xl font-extrabold text-rose-600 mt-1";
+                badge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-700"; badge.innerText = "Below Target"; fpyText.className = "text-3xl font-extrabold text-rose-600 mt-1";
             }
 
             const tbody = document.getElementById('table-body');
             tbody.innerHTML = '';
-            
-            if (data.recentFailures.length === 0) {
-                document.getElementById('empty-state').classList.remove('hidden');
-            } else {
+            if(data.recentFailures.length === 0) document.getElementById('empty-state').classList.remove('hidden');
+            else {
                 document.getElementById('empty-state').classList.add('hidden');
-                data.recentFailures.forEach((row, idx) => {
+                data.recentFailures.forEach((r, i) => {
+                    tbody.insertAdjacentHTML('beforeend', `
+                        <tr class="hover:bg-slate-50 transition-colors border-b border-slate-50 fade-in" style="animation-delay: ${i*0.05}s">
+                            <td class="px-6 py-3"><span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700 border border-rose-200">Fail</span></td>
+                            <td class="px-6 py-3 text-slate-600 font-mono">${r.test_date}</td>
+                            <td class="px-6 py-3 text-slate-500">${r.category}</td>
+                            <td class="px-6 py-3 text-slate-800 font-medium truncate max-w-[200px]" title="${r.model}">${r.model}</td>
+                            <td class="px-6 py-3 text-rose-600 font-bold">${r.error_step_1 || "Unknown"}</td>
+                        </tr>`);
+                });
+            }
+            
+            // Update Charts
+            trendChartInst.data.labels = data.trend.labels;
+            trendChartInst.data.datasets[0].data = data.trend.fpyData;
+            trendChartInst.data.datasets[1].data = data.trend.volumeData;
+            trendChartInst.update();
+            
+            paretoChartInst.data.labels = data.pareto.labels;
+            paretoChartInst.data.datasets[0].data = data.pareto.values;
+            paretoChartInst.update();
+        }
+
+        // --- NPI Logic ---
+        function renderNpiDashboard(filterStatus = 'All') {
+            // Update Buttons
+            document.querySelectorAll('.npi-filter-btn').forEach(btn => {
+                btn.className = "npi-filter-btn px-3 py-1.5 rounded text-xs font-semibold text-slate-600 hover:bg-slate-200 transition-all";
+            });
+            const filterId = filterStatus === 'In Progress' ? 'InProgress' : filterStatus;
+            const btn = document.getElementById(`npi-btn-${filterId}`);
+            if (btn) btn.className = "npi-filter-btn px-3 py-1.5 rounded text-xs font-semibold bg-white text-blue-700 shadow-sm ring-1 ring-slate-200 transition-all";
+
+            // Update Label
+            document.getElementById('npi-current-filter').innerText = `Filter: ${filterStatus}`;
+
+            const tbody = document.getElementById('npi-table-body');
+            tbody.innerHTML = '';
+            
+            let active = 0, completed = 0, totalUnits = 0;
+            
+            // Pre-calculate stats based on ALL data (not filtered)
+            npiData.forEach(item => {
+                if (!item.model) return;
+                const statusRaw = (item.status || "").toLowerCase().trim();
+                if (statusRaw === 'close' || statusRaw === 'completed') completed++;
+                else active++;
+                
+                totalUnits += parseInt(item.taget_units || 0);
+            });
+
+            // Filter for display
+            const filteredData = filterStatus === 'All' 
+                ? npiData 
+                : npiData.filter(item => {
+                    const statusRaw = (item.status || "").toLowerCase().trim();
+                    if (filterStatus === 'Completed') return statusRaw === 'close' || statusRaw === 'completed';
+                    if (filterStatus === 'In Progress') return statusRaw.includes('progress');
+                    if (filterStatus === 'Hold') return statusRaw === 'hold' || statusRaw.includes('delay');
+                    if (filterStatus === 'Waiting') return statusRaw === 'waiting';
+                    return false;
+                });
+
+            if (filteredData.length === 0) {
+                document.getElementById('npi-empty-state').classList.remove('hidden');
+            } else {
+                document.getElementById('npi-empty-state').classList.add('hidden');
+                
+                filteredData.forEach((item, idx) => {
+                    if (!item.model) return;
+
+                    const statusRaw = (item.status || "").toLowerCase().trim();
+                    let statusBadge = "";
+                    let isCompleted = false;
+
+                    if (statusRaw === 'close' || statusRaw === 'completed') {
+                        statusBadge = `<span class="px-2 py-1 rounded text-[10px] font-bold bg-green-100 text-green-700">Completed</span>`;
+                        isCompleted = true;
+                    } else if (statusRaw === 'hold' || statusRaw.includes('delay')) {
+                        statusBadge = `<span class="px-2 py-1 rounded text-[10px] font-bold bg-orange-100 text-orange-700">Hold</span>`;
+                    } else if (statusRaw === 'waiting') {
+                        statusBadge = `<span class="px-2 py-1 rounded text-[10px] font-bold bg-slate-200 text-slate-600">Waiting</span>`;
+                    } else if (statusRaw.includes('progress')) {
+                        statusBadge = `<span class="px-2 py-1 rounded text-[10px] font-bold bg-blue-100 text-blue-700">In Progress</span>`;
+                    } else {
+                        statusBadge = `<span class="px-2 py-1 rounded text-[10px] font-bold bg-slate-100 text-slate-500">${item.status || "Unknown"}</span>`;
+                    }
+                    
+                    const target = parseInt(item.taget_units || 0);
+                    const done = parseInt(item.completed_units || 0);
+
+                    // Progress Bar
+                    const progress = target > 0 ? Math.min(100, Math.round((done / target) * 100)) : 0;
+                    let progressColor = "bg-blue-500";
+                    if(isCompleted || progress >= 100) progressColor = "bg-emerald-500";
+                    else if(statusRaw === 'hold') progressColor = "bg-orange-400";
+                    else if(statusRaw === 'waiting') progressColor = "bg-slate-300";
+
                     const tr = `
                         <tr class="hover:bg-slate-50 transition-colors border-b border-slate-50 fade-in" style="animation-delay: ${idx * 0.05}s">
-                            <td class="px-6 py-3 whitespace-nowrap">
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-700 border border-rose-200">
-                                    Fail
-                                </span>
+                            <td class="px-6 py-4">
+                                <div class="font-bold text-slate-800 text-sm">${item.model}</div>
+                                <div class="text-[10px] text-slate-500 font-mono mt-0.5">${item.part_num}</div>
+                                <div class="text-[10px] text-slate-400 mt-0.5 truncate max-w-[200px]" title="${item.model_description}">${item.model_description}</div>
                             </td>
-                            <td class="px-6 py-3 text-slate-600 font-mono text-[11px]">${row.test_date}</td>
-                            <td class="px-6 py-3 text-slate-500 text-[11px]">${row.category}</td>
-                            <td class="px-6 py-3 text-slate-800 font-medium text-[11px] truncate max-w-[250px]" title="${row.model}">${row.model}</td>
-                            <td class="px-6 py-3 text-rose-600 font-bold text-[11px]">${row.error_step_1 || "Unknown"}</td>
+                            <td class="px-6 py-4">
+                                <div class="flex flex-col gap-1">
+                                    <div class="flex items-center gap-1.5 text-xs text-slate-600">
+                                        <i data-lucide="calendar" class="w-3 h-3 text-slate-400"></i>
+                                        <span>${item.npi_start}</span> 
+                                        <i data-lucide="arrow-right" class="w-3 h-3 text-slate-300"></i>
+                                        <span>${item.npi_end}</span>
+                                    </div>
+                                    ${item.target_date ? `<div class="text-[10px] text-slate-400 pl-5">Target: ${item.target_date}</div>` : ''}
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex justify-between text-[10px] text-slate-500 mb-1">
+                                    <span>${done} / ${target} Units</span>
+                                    <span class="font-bold">${progress}%</span>
+                                </div>
+                                <div class="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
+                                    <div class="${progressColor} h-1.5 rounded-full" style="width: ${progress}%"></div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                ${statusBadge}
+                            </td>
+                            <td class="px-6 py-4 text-xs text-slate-500 italic border-l border-slate-50">
+                                ${item.Note || "-"}
+                            </td>
                         </tr>
                     `;
                     tbody.insertAdjacentHTML('beforeend', tr);
                 });
             }
 
-            updateCharts(data);
+            // Update NPI Stats (Always total stats, unaffected by filter)
+            document.getElementById('npi-active-count').innerText = active;
+            document.getElementById('npi-completed-count').innerText = completed;
+            document.getElementById('npi-total-units').innerText = totalUnits.toLocaleString();
+            
+            lucide.createIcons();
         }
 
-        function initCharts() {
+        function initApp() {
+            // Initialize Charts
             const ctxTrend = document.getElementById('fpyTrendChart').getContext('2d');
             trendChartInst = new Chart(ctxTrend, {
-                type: 'bar',
-                data: { datasets: [] },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: { mode: 'index', intersect: false },
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: { backgroundColor: '#1e293b', padding: 10, titleFont: {family:'Inter', size: 11}, bodyFont: {family:'Inter', size: 11} }
-                    },
-                    scales: {
-                        x: { grid: { display: false }, ticks: { font: {family:'Inter', size: 10} } },
-                        y: { 
-                            type: 'linear', display: true, position: 'left', min: 0, max: 105,
-                            grid: { borderDash: [4, 4], color: '#f1f5f9' },
-                            ticks: { callback: v => v + "%", font: {family:'Inter', size: 10} }
-                        },
-                        y1: { 
-                            type: 'linear', display: true, position: 'right', grid: { display: false },
-                            ticks: { font: {family:'Inter', size: 10} }
-                        }
-                    }
+                type: 'bar', 
+                data: { datasets: [{label:'FPY',type:'line'},{label:'Vol'}] },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    plugins: { legend: {display:false} }, 
+                    scales: { 
+                        y: {min:0, max:105}, 
+                        x:{grid:{display:false}}, 
+                        y1:{position:'right', grid:{display:false}} 
+                    } 
                 }
             });
-
             const ctxPareto = document.getElementById('paretoChart').getContext('2d');
             paretoChartInst = new Chart(ctxPareto, {
-                type: 'bar',
-                indexAxis: 'y',
-                data: { datasets: [] },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: { backgroundColor: '#1e293b' }
-                    },
-                    scales: {
-                        x: { grid: { borderDash: [4, 4], color: '#f1f5f9' }, ticks: { font: {family:'Inter', size: 10} } },
-                        y: { grid: { display: false }, ticks: { font: {family:'Inter', weight: '500', size: 10} } }
-                    }
-                }
+                type: 'bar', indexAxis: 'y', data: { datasets: [{backgroundColor:'#f43f5e'}] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: {display:false} }, scales: { x:{grid:{display:false}}, y:{grid:{display:false}} } }
             });
+
+            // Initial Render
+            updateFpyFilter('All'); // Renamed from renderFpyDashboard
+            renderNpiDashboard('All');
+            window.dispatchEvent(new Event('resize'));
         }
 
-        function updateCharts(data) {
-            trendChartInst.data.labels = data.trend.labels;
-            trendChartInst.data.datasets = [
-                {
-                    label: 'FPY %',
-                    data: data.trend.fpyData,
-                    type: 'line',
-                    borderColor: '#3b82f6',
-                    backgroundColor: '#3b82f6',
-                    borderWidth: 2,
-                    tension: 0.3,
-                    yAxisID: 'y',
-                    pointRadius: 3,
-                    pointHoverRadius: 5,
-                    pointBackgroundColor: '#fff',
-                    pointBorderWidth: 2
-                },
-                {
-                    label: 'Volume',
-                    data: data.trend.volumeData,
-                    backgroundColor: '#e2e8f0',
-                    borderRadius: 3,
-                    barPercentage: 0.5,
-                    yAxisID: 'y1'
-                }
-            ];
-            trendChartInst.update();
-
-            paretoChartInst.data.labels = data.pareto.labels;
-            paretoChartInst.data.datasets = [{
-                label: 'Failure Count',
-                data: data.pareto.values,
-                backgroundColor: '#f43f5e',
-                borderRadius: 3,
-                barThickness: 20
-            }];
-            paretoChartInst.update();
-        }
-
-        function updateFilter(cat) {
-            renderDashboard(cat);
-        }
-
+        // CSV Download (FPY Only)
         function downloadCSV() {
-            if (!fullData || fullData.length === 0) return;
+            if(!fullData.length) return;
             const headers = Object.keys(fullData[0]);
-            const csvRows = [];
-            csvRows.push(headers.join(','));
-            fullData.forEach(row => {
-                const values = headers.map(header => {
-                    const escaped = ('' + row[header]).replace(/"/g, '\\"');
-                    return `"${escaped}"`;
-                });
-                csvRows.push(values.join(','));
-            });
-            const csvContent = csvRows.join('\n');
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
+            const csv = [headers.join(',')].concat(fullData.map(r => headers.map(h => `"${(''+r[h]).replace(/"/g,'\\"')}"`).join(','))).join('\n');
             const link = document.createElement("a");
-            link.setAttribute("href", url);
-            link.setAttribute("download", "evc_all_test_logs.csv");
-            document.body.appendChild(link);
+            link.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+            link.download = "evc_logs.csv";
             link.click();
-            document.body.removeChild(link);
         }
 
-        // Init handled in login check
-        // window.addEventListener('load', () => { ... });
+        // Update Wrappers
+        function updateFpyFilter(cat) { renderFpyDashboard(cat); }
+        function updateNpiFilter(status) { renderNpiDashboard(status); }
 
     </script>
 </body>
