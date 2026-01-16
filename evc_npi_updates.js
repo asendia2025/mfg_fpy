@@ -28,7 +28,7 @@ const evcNpiData = [
     "part_num": "100440000",
     "model_description": "430 kHz, 12.9MHz, DNET, AIR CORE",
     "taget_units": "12",
-    "completed_units": "6",
+    "completed_units": "8",
     "npi_start": "May.2025",
     "npi_end": "",
     "status": "In Progress",
